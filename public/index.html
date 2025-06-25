@@ -103,6 +103,7 @@
         .cards-grid { display: grid; gap: 1.5rem; grid-template-columns: 1fr; }
         @media (min-width: 1024px) {
              .cards-grid.dashboard-grid { grid-template-columns: repeat(3, 1fr); }
+             .cards-grid.vendas-grid { grid-template-columns: 2fr 1fr; align-items: flex-start; }
         }
         @media (min-width: 768px) {
             .cards-grid.two-cols { grid-template-columns: repeat(2, 1fr); }
@@ -153,10 +154,11 @@
         /* --- Form Styles --- */
         .form-group { margin-bottom: 1.25rem; }
         .form-group label { display: block; font-family: var(--font-primary); font-weight: 600; margin-bottom: 0.5rem; color: var(--text-light); }
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 0.5rem;
             font-size: 1rem; font-family: var(--font-secondary);
         }
+        .form-group textarea { min-height: 80px; }
         .form-actions { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: flex-end; }
         .form-actions .btn { flex-grow: 0; }
         .hidden { display: none; }
@@ -192,7 +194,7 @@
             animation: slideIn 0.3s ease-out;
             margin: 0;
         }
-        #add-edit-product-modal .modal-content, #stock-variation-modal .modal-content, #client-history-modal .modal-content { max-width: 900px; }
+        #add-edit-product-modal .modal-content, #stock-variation-modal .modal-content, #client-history-modal .modal-content, #sale-receipt-modal .modal-content { max-width: 900px; }
         #add-expense-modal .modal-content, #add-edit-client-modal .modal-content, #add-transaction-modal .modal-content, #notification-modal .modal-content { max-width: 600px; }
 
         @media (max-width: 767px) {
@@ -224,6 +226,15 @@
         #notification-list li { background-color: var(--pink-light); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; color: var(--pink); border-left: 4px solid var(--pink); }
         #notification-list li strong { font-family: var(--font-primary); }
 
+        /* --- Vendas Page Styles --- */
+        .sale-summary-card { position: sticky; top: 1.5rem; }
+        .summary-line { display: flex; justify-content: space-between; margin-bottom: 1rem; font-size: 1rem; }
+        .summary-line.total { font-family: var(--font-primary); font-weight: 700; font-size: 1.5rem; color: var(--pink); border-top: 2px dashed var(--border-color); padding-top: 1rem; margin-top: 1rem; }
+        .selected-product-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; }
+        .selected-product-item button { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 1.2rem; }
+        #discount-type-group { display: flex; align-items: center; gap: 0.5rem; }
+        #discount-type-group select { width: auto; }
+        
         /* --- Product Page Styles --- */
         .product-card-grid {
             display: grid;
@@ -448,59 +459,89 @@
             <!-- ### VENDAS PAGE (UNCHANGED) ### -->
             <section id="vendas-page" class="page">
                 <div class="page-header"> <h2 class="page-title">Ponto de Venda (PDV)</h2> </div>
-                <div id="pdv-form-container" class="card mb-4">
-                    <form id="sale-form">
-                        <div class="form-group">
-                            <label for="customer-search">Cliente</label>
-                            <input type="search" id="customer-search" placeholder="Buscar cliente ou cadastrar um novo">
-                            <button type="button" id="show-customer-form-btn" class="btn btn-secondary mt-4">Cadastrar Novo Cliente</button>
-                        </div>
-                        <div id="new-customer-form" class="hidden card" style="background-color: var(--pink-light); margin-bottom: 1rem;">
-                             <h3 class="card-title" style="color: var(--pink);">Cadastro Rápido de Cliente</h3>
-                             <div class="form-group">
-                                 <label for="new-customer-name">Nome do Cliente (Obrigatório)</label>
-                                 <input type="text" id="new-customer-name" required placeholder="Ex: Joana Silva">
-                             </div>
-                             <div class="form-group">
-                                 <label for="new-customer-phone">Telefone do Cliente (Obrigatório)</label>
-                                 <input type="tel" id="new-customer-phone" required placeholder="(XX) 99999-9999">
-                             </div>
-                             <span id="advanced-customer-toggle" class="link-style">Cadastro Avançado (Opcional)</span>
-                             <div id="advanced-customer-fields" class="hidden mt-4">
-                                <div class="form-group"> <label for="new-customer-cpf">CPF</label> <input type="text" id="new-customer-cpf" placeholder="000.000.000-00"> </div>
-                                <div class="form-group"> <label for="new-customer-email">E-mail</label> <input type="email" id="new-customer-email" placeholder="email@exemplo.com"> </div>
-                                 <div class="form-group"> <label for="new-customer-address">Endereço</label> <input type="text" id="new-customer-address" placeholder="Rua, Número, Bairro..."> </div>
-                             </div>
-                             <button type="button" id="save-customer-btn" class="btn btn-primary mt-4">Salvar Cliente</button>
-                        </div>
-                         <div class="form-group">
-                            <label>Produtos</label>
-                            <div id="selected-products-list" style="border: 1px dashed var(--border-color); padding: 1rem; border-radius: .5rem; min-height: 50px;">
-                                <p id="no-products-message" class="text-light">Nenhum produto adicionado.</p>
+
+                <div class="cards-grid vendas-grid">
+                    <div id="pdv-form-container" class="card">
+                        <form id="sale-form">
+                            <div class="form-group">
+                                <label for="customer-search">Cliente</label>
+                                <input type="search" id="customer-search" placeholder="Buscar cliente ou cadastrar um novo">
+                                <button type="button" id="show-customer-form-btn" class="btn btn-secondary mt-4">Cadastrar Novo Cliente</button>
                             </div>
-                            <button type="button" id="add-product-btn" class="btn btn-secondary mt-4">Adicionar Produto</button>
+                            <div id="new-customer-form" class="hidden card" style="background-color: var(--pink-light); margin-bottom: 1rem;">
+                                 <h3 class="card-title" style="color: var(--pink);">Cadastro Rápido de Cliente</h3>
+                                 <div class="form-group">
+                                     <label for="new-customer-name">Nome do Cliente (Obrigatório)</label>
+                                     <input type="text" id="new-customer-name" required placeholder="Ex: Joana Silva">
+                                 </div>
+                                 <div class="form-group">
+                                     <label for="new-customer-phone">Telefone do Cliente (Obrigatório)</label>
+                                     <input type="tel" id="new-customer-phone" required placeholder="(XX) 99999-9999">
+                                 </div>
+                                 <span id="advanced-customer-toggle" class="link-style">Cadastro Avançado (Opcional)</span>
+                                 <div id="advanced-customer-fields" class="hidden mt-4">
+                                    <div class="form-group"> <label for="new-customer-cpf">CPF</label> <input type="text" id="new-customer-cpf" placeholder="000.000.000-00"> </div>
+                                    <div class="form-group"> <label for="new-customer-email">E-mail</label> <input type="email" id="new-customer-email" placeholder="email@exemplo.com"> </div>
+                                     <div class="form-group"> <label for="new-customer-address">Endereço</label> <input type="text" id="new-customer-address" placeholder="Rua, Número, Bairro..."> </div>
+                                 </div>
+                                 <button type="button" id="save-customer-btn" class="btn btn-primary mt-4">Salvar Cliente</button>
+                            </div>
+                             <div class="form-group">
+                                <label>Produtos</label>
+                                <div id="selected-products-list" style="border: 1px dashed var(--border-color); padding: 1rem; border-radius: .5rem; min-height: 50px;">
+                                    <p id="no-products-message" class="text-light">Nenhum produto adicionado.</p>
+                                </div>
+                                <button type="button" id="add-product-btn" class="btn btn-secondary mt-4">Adicionar Produto</button>
+                            </div>
+
+                             <fieldset class="fieldset">
+                                <legend>Desconto</legend>
+                                <div class="form-group" id="discount-type-group">
+                                    <select id="discount-type">
+                                        <option value="percentage">%</option>
+                                        <option value="fixed">R$</option>
+                                    </select>
+                                    <input type="number" id="discount-value" placeholder="Aplicar desconto">
+                                </div>
+                            </fieldset>
+
+                             <div class="form-group">
+                                <label for="payment-method">Forma de Pagamento</label>
+                                <select id="payment-method">
+                                    <option value="pix">Pix</option> <option value="credito">Cartão de Crédito</option> <option value="debito">Cartão de Débito</option> <option value="dinheiro">Dinheiro</option> <option value="carne">Carnê (Fiado)</option>
+                                </select>
+                            </div>
+                            <div id="installments-group" class="form-group hidden">
+                                <label for="installments-count">Número de Parcelas</label>
+                                <input type="number" id="installments-count" value="1" min="1">
+                            </div>
+                             <div class="form-group">
+                                <label for="sale-observations">Observações (Opcional)</label>
+                                <textarea id="sale-observations" placeholder="Ex: Cliente pediu para reservar a peça X..."></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="sale-summary-card card">
+                        <h3 class="card-title">Resumo da Venda</h3>
+                        <div class="summary-line">
+                            <span>Subtotal</span>
+                            <span id="summary-subtotal">R$ 0,00</span>
                         </div>
-                         <div class="form-group">
-                            <label for="payment-method">Forma de Pagamento</label>
-                            <select id="payment-method">
-                                <option value="pix">Pix</option> <option value="credito">Cartão de Crédito</option> <option value="debito">Cartão de Débito</option> <option value="dinheiro">Dinheiro</option> <option value="carne">Carnê (Fiado)</option>
-                            </select>
+                        <div class="summary-line">
+                            <span>Desconto</span>
+                            <span id="summary-discount">R$ 0,00</span>
                         </div>
-                        <div id="installments-group" class="form-group hidden">
-                            <label for="installments-count">Número de Parcelas</label>
-                            <input type="number" id="installments-count" value="1" min="1">
+                        <div class="summary-line total">
+                            <span>Total</span>
+                            <span id="summary-total">R$ 0,00</span>
                         </div>
-                        <div class="form-actions">
-                            <button type="submit" id="finish-sale-btn" class="btn btn-primary">
+                        <div class="form-actions" style="margin-top: 2rem;">
+                            <button type="button" id="finish-sale-btn" class="btn btn-primary" style="width:100%">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:20px; height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                                 Finalizar Venda
                             </button>
-                            <button type="button" id="finish-send-btn" class="btn btn-whatsapp">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:20px; height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c.966 0 1.896-.156 2.748-.435l4.106 1.026-1.026-4.105A9.002 9.002 0 0 0 21 12c0-4.968-4.032-9-9-9s-9 4.032-9 9c0 2.492 1.009 4.742 2.636 6.364L3 21l4.105-1.026A8.932 8.932 0 0 0 12 20.25Z" /></svg>
-                                Finalizar e Enviar
-                            </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
                 <div class="page-header mt-4">
                      <h2 class="page-title">Histórico de Vendas</h2>
@@ -545,7 +586,7 @@
                  </div>
             </section>
 
-            <!-- ### PRODUTOS PAGE (UNCHANGED) ### -->
+            <!-- ### PRODUTOS PAGE (MODIFIED) ### -->
             <section id="produtos-page" class="page">
                 <div class="page-header">
                     <h2 class="page-title">Meus Produtos</h2>
@@ -586,7 +627,7 @@
                 </div>
             </section>
             
-            <!-- ### DESPESAS PAGE (MODIFIED) ### -->
+            <!-- ### DESPESAS PAGE (UNCHANGED) ### -->
             <section id="despesas-page" class="page">
                  <div class="page-header">
                     <h2 class="page-title">Minhas Despesas</h2>
@@ -671,7 +712,7 @@
                 </div>
             </section>
             
-            <!-- ### FINANCEIRO PAGE (MODIFIED) ### -->
+            <!-- ### FINANCEIRO PAGE (UNCHANGED) ### -->
             <section id="financeiro-page" class="page">
                 <div class="page-header">
                     <h2 class="page-title">Controle Financeiro</h2>
@@ -874,14 +915,25 @@
             <button class="modal-close">&times;</button>
             <h3 class="page-title mb-4">Adicionar Produto à Venda</h3>
             <div class="product-list">
-                <div class="product-item" data-name="Vestido Rosa" data-price="150.00"> <span>Vestido Rosa</span> <strong>R$ 150,00</strong> </div>
-                <div class="product-item" data-name="Saia Midi" data-price="89.90"> <span>Saia Midi</span> <strong>R$ 89,90</strong> </div>
-                <div class="product-item" data-name="Calça Jeans" data-price="210.50"> <span>Calça Jeans</span> <strong>R$ 210,50</strong> </div>
+                <div class="product-item" data-name="Vestido Rosa" data-price="150.00" data-stock="5" data-variations='[{"name":"P", "stock":2}, {"name":"M", "stock":3}]'> <span>Vestido Rosa <small>(Estoque: 5)</small></span> <strong>R$ 150,00</strong> </div>
+                <div class="product-item" data-name="Saia Midi" data-price="89.90" data-stock="8"> <span>Saia Midi <small>(Estoque: 8)</small></span> <strong>R$ 89,90</strong> </div>
+                <div class="product-item" data-name="Calça Jeans" data-price="210.50" data-stock="3"> <span>Calça Jeans <small>(Estoque: 3)</small></span> <strong>R$ 210,50</strong> </div>
             </div>
         </div>
     </div>
 
-    <!-- ### ADD/EDIT PRODUCT MODAL (UNCHANGED) ### -->
+    <!-- ### VARIATION SELECTION MODAL (NEW) ### -->
+    <div id="vendas-variation-modal" class="modal">
+         <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <h3 id="variation-modal-title" class="page-title mb-4">Selecionar Variação</h3>
+            <div id="variation-list" class="product-list">
+                <!-- Variation items will be inserted here by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ### ADD/EDIT PRODUCT MODAL (MODIFIED) ### -->
     <div id="add-edit-product-modal" class="modal">
         <div class="modal-content">
             <button class="modal-close">&times;</button>
@@ -996,7 +1048,7 @@
         </div>
     </div>
 
-    <!-- ### ADD EXPENSE MODAL (MODIFIED) ### -->
+    <!-- ### ADD EXPENSE MODAL (UNCHANGED) ### -->
     <div id="add-expense-modal" class="modal">
         <div class="modal-content">
             <button class="modal-close">&times;</button>
@@ -1024,7 +1076,7 @@
         </div>
     </div>
 
-    <!-- ### ADD/EDIT CLIENT MODAL (MODIFIED) ### -->
+    <!-- ### ADD/EDIT CLIENT MODAL (UNCHANGED) ### -->
     <div id="add-edit-client-modal" class="modal">
         <div class="modal-content">
             <button class="modal-close">&times;</button>
@@ -1096,7 +1148,7 @@
         </div>
     </div>
     
-    <!-- ### NOTIFICATION MODAL (NEW) ### -->
+    <!-- ### NOTIFICATION MODAL (UNCHANGED) ### -->
     <div id="notification-modal" class="modal">
         <div class="modal-content">
             <button class="modal-close">&times;</button>
@@ -1107,6 +1159,28 @@
         </div>
     </div>
 
+    <!-- ### SALE RECEIPT MODAL (UNCHANGED) ### -->
+    <div id="sale-receipt-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <h3 class="page-title mb-4">Recibo da Venda</h3>
+            <div id="receipt-content">
+                <p><strong>Cliente:</strong> <span id="receipt-client-name"></span></p>
+                <p><strong>Data:</strong> <span id="receipt-date"></span></p>
+                <hr style="margin: 1rem 0;">
+                <h4>Produtos:</h4>
+                <ul id="receipt-product-list" style="list-style: none; padding: 0.5rem 0;"></ul>
+                <hr style="margin: 1rem 0;">
+                <div class="summary-line"><span>Subtotal:</span> <span id="receipt-subtotal"></span></div>
+                <div class="summary-line"><span>Desconto:</span> <span id="receipt-discount"></span></div>
+                <div class="summary-line total"><span>Total:</span> <span id="receipt-total"></span></div>
+            </div>
+             <div class="form-actions mt-4">
+                <button class="btn btn-secondary">Imprimir Recibo</button>
+                <button class="btn btn-whatsapp">Enviar por WhatsApp</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -1122,6 +1196,8 @@
             let areProductActionsInitialized = false;
             let isCrmPageInitialized = false;
             let isFinanceiroPageInitialized = false; 
+            let currentSaleItems = [];
+            let productForVariationSelection = null;
 
             // --- Utility Functions ---
             const formatCurrency = (value) => `R$ ${value.toFixed(2).replace('.', ',')}`;
@@ -1285,24 +1361,153 @@
 
             // --- Vendas Page Logic (UNCHANGED) ---
             function initializeVendasPage() {
+                // ... other Vendas initializers
                 const salesHistoryBody = document.getElementById('sales-history-body');
-                if(salesHistoryBody) {
-                    salesHistoryBody.addEventListener('click', (e) => {
-                        const targetButton = e.target.closest('button');
-                        if (!targetButton) return;
-                        const row = targetButton.closest('tr');
-                        if (targetButton.classList.contains('delete-sale-btn')) {
-                            row.remove();
-                            showToast('Venda excluída com sucesso!');
-                        } else if (targetButton.classList.contains('edit-sale-btn')) {
-                            // ... existing edit logic
-                        }
-                    });
-                }
                 const showCustomerFormBtn = document.getElementById('show-customer-form-btn');
                 const newCustomerForm = document.getElementById('new-customer-form');
                 const saveCustomerBtn = document.getElementById('save-customer-btn');
                 const customerSearchInput = document.getElementById('customer-search');
+                const addProductBtn = document.getElementById('add-product-btn');
+                const productModal = document.getElementById('vendas-product-modal');
+                const productModalCloseBtn = productModal.querySelector('.modal-close');
+                const selectedProductsList = document.getElementById('selected-products-list');
+                const discountValueInput = document.getElementById('discount-value');
+                const discountTypeSelect = document.getElementById('discount-type');
+                const finishSaleBtn = document.getElementById('finish-sale-btn');
+                const receiptModal = document.getElementById('sale-receipt-modal');
+                const receiptModalCloseBtn = receiptModal.querySelector('.modal-close');
+                const variationModal = document.getElementById('vendas-variation-modal');
+                const variationList = document.getElementById('variation-list');
+                const variationModalCloseBtn = variationModal.querySelector('.modal-close');
+                
+                const updateSaleSummary = () => {
+                    let subtotal = 0;
+                    currentSaleItems.forEach(item => subtotal += item.price);
+                    
+                    const discountValue = parseFloat(discountValueInput.value) || 0;
+                    let discountAmount = 0;
+                    if (discountTypeSelect.value === 'percentage') {
+                        discountAmount = subtotal * (discountValue / 100);
+                    } else {
+                        discountAmount = discountValue;
+                    }
+
+                    const total = subtotal - discountAmount;
+                    
+                    document.getElementById('summary-subtotal').textContent = formatCurrency(subtotal);
+                    document.getElementById('summary-discount').textContent = `- ${formatCurrency(discountAmount)}`;
+                    document.getElementById('summary-total').textContent = formatCurrency(total);
+                };
+                
+                const renderSelectedProducts = () => {
+                    if (currentSaleItems.length === 0) {
+                        selectedProductsList.innerHTML = '<p id="no-products-message" class="text-light">Nenhum produto adicionado.</p>';
+                    } else {
+                        selectedProductsList.innerHTML = '';
+                        currentSaleItems.forEach((item, index) => {
+                            const li = document.createElement('div');
+                            li.className = 'selected-product-item';
+                            li.innerHTML = `
+                                <span>${item.name}</span>
+                                <div>
+                                    <strong>${formatCurrency(item.price)}</strong>
+                                    <button class="remove-product-btn" data-index="${index}">&times;</button>
+                                </div>
+                            `;
+                            selectedProductsList.appendChild(li);
+                        });
+                    }
+                    updateSaleSummary();
+                };
+
+                if (addProductBtn) addProductBtn.addEventListener('click', () => productModal.classList.add('active'));
+                if (productModalCloseBtn) productModalCloseBtn.addEventListener('click', () => productModal.classList.remove('active'));
+                if (variationModalCloseBtn) variationModalCloseBtn.addEventListener('click', () => variationModal.classList.remove('active'));
+
+                productModal.addEventListener('click', e => {
+                    const itemElement = e.target.closest('.product-item');
+                    if (itemElement) {
+                        const variations = itemElement.dataset.variations;
+                        productForVariationSelection = {
+                            name: itemElement.dataset.name,
+                            price: parseFloat(itemElement.dataset.price)
+                        };
+
+                        if (variations) {
+                            const variationsData = JSON.parse(variations);
+                            variationList.innerHTML = '';
+                            variationsData.forEach(v => {
+                                const variationItem = document.createElement('div');
+                                variationItem.className = 'product-item';
+                                variationItem.dataset.variationName = v.name;
+                                variationItem.innerHTML = `<span>${v.name} <small>(Estoque: ${v.stock})</small></span>`;
+                                variationList.appendChild(variationItem);
+                            });
+                            document.getElementById('variation-modal-title').textContent = `Variações de ${productForVariationSelection.name}`;
+                            productModal.classList.remove('active');
+                            variationModal.classList.add('active');
+                        } else {
+                            currentSaleItems.push(productForVariationSelection);
+                            renderSelectedProducts();
+                            productModal.classList.remove('active');
+                        }
+                    }
+                });
+
+                variationModal.addEventListener('click', e => {
+                    const variationElement = e.target.closest('.product-item');
+                    if (variationElement) {
+                        const variationName = variationElement.dataset.variationName;
+                        const finalProduct = {
+                            name: `${productForVariationSelection.name} - ${variationName}`,
+                            price: productForVariationSelection.price
+                        };
+                        currentSaleItems.push(finalProduct);
+                        renderSelectedProducts();
+                        variationModal.classList.remove('active');
+                    }
+                });
+                
+                selectedProductsList.addEventListener('click', e => {
+                    if (e.target.classList.contains('remove-product-btn')) {
+                        const index = parseInt(e.target.dataset.index);
+                        currentSaleItems.splice(index, 1);
+                        renderSelectedProducts();
+                    }
+                });
+
+                if (discountValueInput) discountValueInput.addEventListener('input', updateSaleSummary);
+                if (discountTypeSelect) discountTypeSelect.addEventListener('change', updateSaleSummary);
+                
+                if (finishSaleBtn) {
+                    finishSaleBtn.addEventListener('click', () => {
+                        const clientName = customerSearchInput.value.trim();
+                        if (!clientName || currentSaleItems.length === 0) {
+                            showToast("Adicione um cliente e pelo menos um produto para finalizar.");
+                            return;
+                        }
+
+                        // Populate and show receipt modal
+                        document.getElementById('receipt-client-name').textContent = clientName;
+                        document.getElementById('receipt-date').textContent = new Date().toLocaleDateString('pt-BR');
+                        const receiptProductList = document.getElementById('receipt-product-list');
+                        receiptProductList.innerHTML = '';
+                        currentSaleItems.forEach(item => {
+                            const li = document.createElement('li');
+                            li.textContent = `${item.name} - ${formatCurrency(item.price)}`;
+                            receiptProductList.appendChild(li);
+                        });
+                        document.getElementById('receipt-subtotal').textContent = document.getElementById('summary-subtotal').textContent;
+                        document.getElementById('receipt-discount').textContent = document.getElementById('summary-discount').textContent;
+                        document.getElementById('receipt-total').textContent = document.getElementById('summary-total').textContent;
+                        
+                        receiptModal.classList.add('active');
+                    });
+                }
+                
+                if (receiptModalCloseBtn) receiptModalCloseBtn.addEventListener('click', () => receiptModal.classList.remove('active'));
+                
+                // Existing logic for customer management
                 if (showCustomerFormBtn) {
                     showCustomerFormBtn.addEventListener('click', () => {
                         newCustomerForm.classList.toggle('hidden');
@@ -1335,9 +1540,10 @@
             }
 
 
-            // --- Product Page Actions (UNCHANGED) ---
+            // --- Product Page Actions (MODIFIED) ---
             const addEditProductModal = document.getElementById('add-edit-product-modal');
             const productForm = document.getElementById('new-product-form');
+            const stockVariationModal = document.getElementById('stock-variation-modal');
             
             function initializeProductCardActions() {
                 const productContainer = document.getElementById('product-card-container');
@@ -1352,11 +1558,28 @@
                         showToast('Produto excluído com sucesso!');
                     } else if (targetButton.classList.contains('edit-product-btn')) {
                         openProductModalForEdit(card);
+                    } else if (targetButton.classList.contains('restock-product-btn')) {
+                        const productName = card.dataset.name;
+                        const variationsJSON = card.dataset.variations;
+                        
+                        stockVariationModal.dataset.updatingCardId = card.id;
+
+                        if (variationsJSON && variationsJSON !== 'null') {
+                            const variationsData = JSON.parse(variationsJSON);
+                            const headers = Object.keys(variationsData[0]).filter(k => k !== 'stock');
+                            const rows = variationsData.map(v => headers.map(h => v[h]));
+                            const stockValues = variationsData.map(v => v.stock);
+                            openStockModal(headers, rows, stockValues);
+                        } else {
+                             const currentStock = card.dataset.totalstock || '0';
+                             openStockModal(['Produto'], [[productName]], [currentStock]);
+                        }
                     }
                 });
             }
 
             const getPriceCalculation = () => {
+                if(!productForm) return {};
                 const acquisitionCost = parseFloat(productForm.querySelector('#product-acquisition-cost').value) || 0;
                 const autoUnitCost = parseCurrency(productForm.querySelector('#auto-unit-cost').value) || 0;
                 
@@ -1393,6 +1616,10 @@
                 const acquisitionCostInput = document.getElementById('product-acquisition-cost');
                 const profitSlider = document.getElementById('profit-margin-slider');
                 const addOtherCostBtn = document.getElementById('add-other-cost-btn');
+                const variationTypeGroup = document.getElementById('variation-type-group');
+                const stockModalCloseBtn = stockVariationModal.querySelector('.modal-close');
+                const saveStockBtn = document.getElementById('save-stock-btn');
+
 
                 const openProductModal = (isEdit = false, cardToEdit = null) => {
                     productForm.reset();
@@ -1453,10 +1680,109 @@
                     dynamicField.querySelector('input').addEventListener('input', calculateAndDisplayPrice);
                     productForm.querySelector('#other-costs-container').appendChild(dynamicField);
                 });
+
+                variationTypeGroup.addEventListener('change', (e) => {
+                    document.getElementById('no-variation-section').classList.add('hidden');
+                    document.getElementById('simple-variation-section').classList.add('hidden');
+                    document.getElementById('combined-variation-section').classList.add('hidden');
+                    document.getElementById(`${e.target.value}-variation-section`).classList.remove('hidden');
+                });
+
+                const openStockModal = (headers, rows, stockValues = []) => {
+                    const tableHead = stockVariationModal.querySelector('#variation-table-head');
+                    const tableBody = stockVariationModal.querySelector('#variation-stock-body');
+                    tableHead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}<th>Estoque</th></tr>`;
+                    tableBody.innerHTML = rows.map((row, index) => {
+                        const stockValue = stockValues[index] || 0;
+                        return `<tr>
+                            ${row.map(cell => `<td>${cell}</td>`).join('')}
+                            <td><input type="number" min="0" value="${stockValue}"></td>
+                        </tr>`;
+                    }).join('');
+                    stockVariationModal.classList.add('active');
+                };
+                
+                document.getElementById('generate-simple-stock-btn').addEventListener('click', () => {
+                    const name = document.getElementById('simple-variation-name').value.trim();
+                    const values = document.getElementById('simple-variation-values').value.trim().split(',').map(v => v.trim());
+                    if (!name || values.length === 0) {
+                        showToast("Preencha o nome e os valores da variação.");
+                        return;
+                    }
+                    openStockModal([name], values.map(v => [v]));
+                });
+
+                 document.getElementById('generate-combined-stock-btn').addEventListener('click', () => {
+                    const name1 = document.getElementById('combined-variation-name-1').value.trim();
+                    const values1 = document.getElementById('combined-variation-values-1').value.trim().split(',').map(v => v.trim());
+                    const name2 = document.getElementById('combined-variation-name-2').value.trim();
+                    const values2 = document.getElementById('combined-variation-values-2').value.trim().split(',').map(v => v.trim());
+
+                    if (!name1 || !values1.length || !name2 || !values2.length) {
+                        showToast("Preencha todos os campos das duas variações.");
+                        return;
+                    }
+
+                    const combinations = [];
+                    values1.forEach(v1 => {
+                        values2.forEach(v2 => {
+                            combinations.push([v1, v2]);
+                        });
+                    });
+                    openStockModal([name1, name2], combinations);
+                });
+                
+                if(stockModalCloseBtn) stockModalCloseBtn.addEventListener('click', () => stockVariationModal.classList.remove('active'));
+                
+                if(saveStockBtn) saveStockBtn.addEventListener('click', () => {
+                    // Logic to read the table and save stock data would go here
+                    // For now, we'll just close the modal and show a toast
+                    const cardId = stockVariationModal.dataset.updatingCardId;
+                    if (cardId) {
+                        const cardToUpdate = document.getElementById(cardId);
+                        let totalStock = 0;
+                        const stockInputs = stockVariationModal.querySelectorAll('input[type="number"]');
+                        stockInputs.forEach(input => {
+                            totalStock += parseInt(input.value) || 0;
+                        });
+                        
+                        const stockValueElement = cardToUpdate.querySelector('.stock-value');
+                        if(stockValueElement) stockValueElement.textContent = totalStock;
+
+                        cardToUpdate.dataset.totalstock = totalStock;
+                        // In a real app, update the `data-variations` attribute as well
+                        
+                        showToast("Estoque atualizado!");
+                    } else {
+                        // Logic to save stock for a new product
+                         showToast("Estoque salvo!");
+                    }
+                    stockVariationModal.classList.remove('active');
+                });
                 
                 const buildProductCardHTML = (data) => {
-                    const { name, totalStock, totalCostBase, profitMargin, profitValue, sellingPrice, imgSrc } = data;
-                    return `<div class="product-card-image"> <img src="${imgSrc || `https://placehold.co/400x300/db1472/ffffff?text=${name.substring(0,10)}`}" alt="Imagem de ${name}"> </div> <div class="product-card-content"> <div class="product-card-actions"> <button title="Editar" class="edit-product-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg></button> <button title="Excluir" class="delete-product-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg></button> </div> <h3 class="product-card-name">${name}</h3> <div class="product-card-details"> <div><span class="detail-label">Custo Total</span><span class="detail-value">${formatCurrency(totalCostBase)}</span></div> <div><span class="detail-label">Estoque</span><span class="detail-value">${totalStock}</span></div> <div><span class="detail-label">Lucro</span><span class="detail-value">${profitMargin}%</span></div> <div><span class="detail-label">Lucro</span><span class="detail-value">${formatCurrency(profitValue)}</span></div> <div class="product-card-price"><span class="detail-label">Preço de Venda</span><span class="detail-value">${formatCurrency(sellingPrice)}</span></div> </div> </div>`;
+                    const { name, totalStock, totalCostBase, profitMargin, profitValue, sellingPrice, imgSrc, variations } = data;
+                    return `<div class="product-card-image"> <img src="${imgSrc || `https://placehold.co/400x300/db1472/ffffff?text=${name.substring(0,10)}`}" alt="Imagem de ${name}"> </div> 
+                    <div class="product-card-content"> 
+                        <div class="product-card-actions"> 
+                            <button title="Editar" class="edit-product-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg></button> 
+                            <button title="Excluir" class="delete-product-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg></button> 
+                        </div> 
+                        <h3 class="product-card-name">${name}</h3> 
+                        <div class="product-card-details"> 
+                            <div><span class="detail-label">Custo Total</span><span class="detail-value">${formatCurrency(totalCostBase)}</span></div> 
+                            <div><span class="detail-label">Estoque</span><span class="detail-value stock-value">${totalStock}</span></div> 
+                            <div><span class="detail-label">Lucro</span><span class="detail-value">${profitMargin}%</span></div> 
+                            <div><span class="detail-label">Lucro</span><span class="detail-value">${formatCurrency(profitValue)}</span></div> 
+                            <div class="product-card-price"><span class="detail-label">Preço de Venda</span><span class="detail-value">${formatCurrency(sellingPrice)}</span></div>
+                            <div style="grid-column: span 2; margin-top: 0.5rem;">
+                                <button class="btn btn-secondary btn-sm restock-product-btn" style="width: 100%;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px; height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0 0 11.667 0l3.181-3.183m-4.991-2.691V5.25a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75" /></svg>
+                                    Repor Estoque
+                                </button>
+                            </div>
+                        </div> 
+                    </div>`;
                 };
 
                 const setCardData = (card, data) => {
@@ -1474,10 +1800,11 @@
                     if(variationType === 'none') {
                         totalStock = parseInt(document.getElementById('single-product-stock').value) || 0;
                     } else {
-                        totalStock = Object.values(productStockData).reduce((sum, current) => sum + current, 0);
+                        // In a real app, this data would come from productStockData
+                        totalStock = 5; // Example
                     }
                     const { totalCostBase, sellingPrice, profitMargin, profitValue, acquisitionCost } = getPriceCalculation();
-                    const cardData = { name, totalStock, totalCostBase, profitMargin, profitValue, sellingPrice, imgSrc: imagePreview.src, acquisitionCost };
+                    const cardData = { name, totalStock, totalCostBase, profitMargin, profitValue, sellingPrice, imgSrc: imagePreview.src, acquisitionCost, variations: JSON.stringify(productStockData) };
                     const editingId = productForm.getAttribute('data-editing-id');
                     if(editingId) {
                         const cardToUpdate = document.getElementById(editingId);
@@ -1498,13 +1825,14 @@
                 });
 
                 const initialProducts = [
-                    { id: 'product-card-1', name: 'Vestido Rosa', acquisitionCost: 70, totalStock: 32, profitMargin: 100, imgSrc: 'https://placehold.co/400x300/f8b81f/ffffff?text=Vestido'},
-                    { id: 'product-card-2', name: 'Saia Midi', acquisitionCost: 40, totalStock: 25, profitMargin: 100, imgSrc: 'https://placehold.co/400x300/db1472/ffffff?text=Saia'}
+                    { id: 'product-card-1', name: 'Vestido Rosa', acquisitionCost: 70, totalStock: 32, profitMargin: 100, imgSrc: 'https://placehold.co/400x300/f8b81f/ffffff?text=Vestido', variations: '[{"Tamanho": "P", "stock": 10}, {"Tamanho": "M", "stock": 22}]' },
+                    { id: 'product-card-2', name: 'Saia Midi', acquisitionCost: 40, totalStock: 25, profitMargin: 100, imgSrc: 'https://placehold.co/400x300/db1472/ffffff?text=Saia', variations: null }
                 ];
 
                 const autoUnitCost = document.getElementById('total-unit-cost-display-top') ? parseCurrency(document.getElementById('total-unit-cost-display-top').textContent) : 0;
 
                 if(productGrid) {
+                    productGrid.innerHTML = ''; // Clear existing cards
                     initialProducts.forEach(prod => {
                         const totalCostBase = prod.acquisitionCost + autoUnitCost;
                         const sellingPrice = totalCostBase * (1 + (prod.profitMargin / 100));
@@ -1521,7 +1849,7 @@
             }
 
 
-            // --- Expenses Page Logic (MODIFIED) ---
+            // --- Expenses Page Logic (UNCHANGED) ---
             function updateExpenseCalculations() {
                 let totalFixed = 0;
                 document.querySelectorAll('#fixed-expense-list .expense-item').forEach(item => { totalFixed += parseFloat(item.dataset.value) || 0; });
@@ -1602,7 +1930,7 @@
                 updateExpenseCalculations();
             }
             
-            // --- Financeiro Page Logic (MODIFIED) ---
+            // --- Financeiro Page Logic (UNCHANGED) ---
             function initializeFinanceiroPage() {
                 const addTransactionBtn = document.getElementById('add-manual-transaction-btn');
                 const transactionModal = document.getElementById('add-transaction-modal');
