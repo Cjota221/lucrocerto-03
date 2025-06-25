@@ -128,18 +128,20 @@
         /* --- Button Styles --- */
         .btn {
             font-family: var(--font-primary); font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.5rem;
-            border: none; cursor: pointer; transition: background-color 0.2s ease, transform 0.2s ease; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            border: none; cursor: pointer; transition: all 0.2s ease; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
         }
+        .btn:not(:disabled):hover { transform: translateY(-2px); }
+        .btn:disabled { cursor: not-allowed; background-color: #d1d5db; color: #6b7280; }
         .btn-primary { background-color: var(--pink); color: var(--white); }
-        .btn-primary:hover { background-color: #be1265; transform: translateY(-2px); }
+        .btn-primary:not(:disabled):hover { background-color: #be1265; }
         .btn-secondary { background-color: var(--pink-light); color: var(--pink); }
-        .btn-secondary:hover { background-color: #fbcfe8; }
+        .btn-secondary:not(:disabled):hover { background-color: #fbcfe8; }
         .btn-danger { background-color: var(--border-color); color: var(--text-light); }
         .btn-danger:hover { background-color: #d1d5db; }
         .btn-success { background-color: var(--success); color: var(--white); }
-        .btn-success:hover { background-color: #16a34a; transform: translateY(-2px); }
+        .btn-success:not(:disabled):hover { background-color: #16a34a; }
         .btn-whatsapp { background-color: var(--success); color: var(--white); }
-        .btn-whatsapp:hover { background-color: #16a34a; transform: translateY(-2px); }
+        .btn-whatsapp:not(:disabled):hover { background-color: #16a34a; }
         .btn-sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
         
         .quick-action-btn {
@@ -191,7 +193,7 @@
             margin: 0;
         }
         #add-edit-product-modal .modal-content, #stock-variation-modal .modal-content, #client-history-modal .modal-content { max-width: 900px; }
-        #add-expense-modal .modal-content, #add-edit-client-modal .modal-content, #add-transaction-modal .modal-content { max-width: 600px; }
+        #add-expense-modal .modal-content, #add-edit-client-modal .modal-content, #add-transaction-modal .modal-content, #notification-modal .modal-content { max-width: 600px; }
 
         @media (max-width: 767px) {
             #add-edit-product-modal .modal-content { max-width: 90%; }
@@ -209,7 +211,7 @@
         }
         .product-list .product-item:hover { background-color: var(--pink-light); }
         
-        /* --- Toast Notification Styles --- */
+        /* --- Toast & Notification Styles --- */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000; }
         .toast {
             background-color: var(--text-dark); color: var(--white); padding: 1rem 1.5rem;
@@ -218,6 +220,9 @@
             transform: translateY(20px); animation: toastIn 0.5s forwards;
         }
         @keyframes toastIn { to { opacity: 1; transform: translateY(0); } }
+        #notification-list { list-style: none; padding-left: 0; }
+        #notification-list li { background-color: var(--pink-light); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; color: var(--pink); border-left: 4px solid var(--pink); }
+        #notification-list li strong { font-family: var(--font-primary); }
 
         /* --- Product Page Styles --- */
         .product-card-grid {
@@ -283,6 +288,11 @@
         .expense-item span { font-size: 1rem; }
         .expense-item strong { font-family: var(--font-primary); }
         .expense-item .details { font-size: 0.8rem; color: var(--text-light); }
+        .expense-category-tag {
+            background-color: var(--blue); color: var(--white);
+            font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 999px;
+            margin-left: 0.5rem; font-family: var(--font-primary);
+        }
         
         .calculator-card { background: var(--pink-light); }
         .calculator-result {
@@ -435,7 +445,7 @@
                 </div>
             </section>
             
-            <!-- ### VENDAS PAGE (MODIFIED) ### -->
+            <!-- ### VENDAS PAGE (UNCHANGED) ### -->
             <section id="vendas-page" class="page">
                 <div class="page-header"> <h2 class="page-title">Ponto de Venda (PDV)</h2> </div>
                 <div id="pdv-form-container" class="card mb-4">
@@ -576,7 +586,7 @@
                 </div>
             </section>
             
-            <!-- ### DESPESAS PAGE (UNCHANGED) ### -->
+            <!-- ### DESPESAS PAGE (MODIFIED) ### -->
             <section id="despesas-page" class="page">
                  <div class="page-header">
                     <h2 class="page-title">Minhas Despesas</h2>
@@ -605,17 +615,17 @@
                         </div>
                         <p class="info-text">Gastos que não mudam com o volume de vendas. Ex: Aluguel, internet, salários.</p>
                         <ul id="fixed-expense-list" class="expense-list">
-                            <li class="expense-item" data-value="800.00">
+                            <li class="expense-item" data-value="800.00" data-category="Aluguel">
                                 <div>
                                     <span>Aluguel</span>
-                                    <div class="details">Vence em: 10/07/2025 (Mensal)</div>
+                                    <div class="details">Vence em: 10/07/2025 (Mensal)<span class="expense-category-tag">Aluguel</span></div>
                                 </div>
                                 <strong>R$ 800,00</strong>
                             </li>
-                            <li class="expense-item" data-value="99.90">
+                            <li class="expense-item" data-value="99.90" data-category="Outros">
                                 <div>
                                     <span>Internet</span>
-                                     <div class="details">Vence em: 15/07/2025 (Mensal)</div>
+                                     <div class="details">Vence em: 15/07/2025 (Mensal)<span class="expense-category-tag">Outros</span></div>
                                 </div>
                                 <strong>R$ 99,90</strong>
                             </li>
@@ -628,12 +638,18 @@
                         </div>
                         <p class="info-text">Gastos por cada produto vendido. Ex: Embalagem, mimos, taxa do cartão.</p>
                          <ul id="variable-expense-list" class="expense-list">
-                            <li class="expense-item" data-value="1.00">
-                                <span>Embalagem por produto</span>
+                            <li class="expense-item" data-value="1.00" data-category="Embalagens">
+                                <div>
+                                    <span>Embalagem por produto</span>
+                                    <span class="expense-category-tag" style="background-color: var(--gold);">Embalagens</span>
+                                </div>
                                 <strong>R$ 1,00</strong>
                             </li>
-                             <li class="expense-item" data-value="2.00">
-                                <span>Mimo por produto</span>
+                             <li class="expense-item" data-value="2.00" data-category="Marketing">
+                                <div>
+                                    <span>Mimo por produto</span>
+                                    <span class="expense-category-tag" style="background-color: var(--pink);">Marketing</span>
+                                </div>
                                 <strong>R$ 2,00</strong>
                             </li>
                         </ul>
@@ -655,7 +671,7 @@
                 </div>
             </section>
             
-            <!-- ### FINANCEIRO PAGE (NEW) ### -->
+            <!-- ### FINANCEIRO PAGE (MODIFIED) ### -->
             <section id="financeiro-page" class="page">
                 <div class="page-header">
                     <h2 class="page-title">Controle Financeiro</h2>
@@ -667,6 +683,10 @@
                                  <option value="daily">Hoje</option>
                              </select>
                          </div>
+                         <button id="export-report-btn" class="btn btn-secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:20px; height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                            Exportar Relatório
+                        </button>
                          <button id="add-manual-transaction-btn" class="btn btn-primary">
                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:20px; height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                              Lançamento Manual
@@ -692,26 +712,32 @@
                         <p class="card-value" style="color: var(--pink);">R$ 6.030,70</p>
                     </div>
                 </div>
-
-                <div class="card mb-4">
-                    <h3 class="card-title text-center">Fluxo de Caixa (Entradas vs. Saídas)</h3>
-                    <canvas id="cashFlowChart"></canvas>
+                
+                <div class="cards-grid two-cols mb-4">
+                    <div class="card">
+                        <h3 class="card-title text-center">Fluxo de Caixa (Entradas vs. Saídas)</h3>
+                        <canvas id="cashFlowChart"></canvas>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title text-center">Despesas por Categoria</h3>
+                        <canvas id="expensesByCategoryChart"></canvas>
+                    </div>
                 </div>
                 
                 <div class="cards-grid two-cols">
                     <div class="card">
                         <h3 class="card-title">Contas a Receber</h3>
                         <div class="table-wrapper">
-                            <table>
+                            <table id="receivables-table">
                                 <thead>
                                     <tr><th>Cliente</th><th>Vencimento</th><th>Valor</th><th>Ação</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
+                                    <tr data-due-date="2025-06-25">
                                         <td>Carla Dias</td>
-                                        <td>30/06/2025</td>
+                                        <td>25/06/2025</td>
                                         <td>R$ 210,50</td>
-                                        <td><button class="btn btn-success btn-sm">Recebido</button></td>
+                                        <td><button class="btn btn-success btn-sm action-btn">Recebido</button></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -720,22 +746,28 @@
                      <div class="card">
                         <h3 class="card-title">Contas a Pagar</h3>
                          <div class="table-wrapper">
-                            <table>
+                            <table id="payables-table">
                                 <thead>
                                     <tr><th>Descrição</th><th>Vencimento</th><th>Valor</th><th>Ação</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
+                                    <tr data-due-date="2025-07-10">
                                         <td>Aluguel</td>
                                         <td>10/07/2025</td>
                                         <td>R$ 800,00</td>
-                                        <td><button class="btn btn-primary btn-sm">Pagar</button></td>
+                                        <td><button class="btn btn-primary btn-sm action-btn">Pagar</button></td>
                                     </tr>
-                                    <tr>
+                                    <tr data-due-date="2025-07-15">
                                         <td>Internet</td>
                                         <td>15/07/2025</td>
                                         <td>R$ 99,90</td>
-                                        <td><button class="btn btn-primary btn-sm">Pagar</button></td>
+                                        <td><button class="btn btn-primary btn-sm action-btn">Pagar</button></td>
+                                    </tr>
+                                    <tr data-due-date="2025-06-25">
+                                        <td>Fornecedor de Roupas</td>
+                                        <td>25/06/2025</td>
+                                        <td>R$ 1.250,00</td>
+                                        <td><button class="btn btn-primary btn-sm action-btn">Pagar</button></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -745,7 +777,7 @@
 
             </section>
             
-            <!-- ### CRM PAGE (MODIFIED) ### -->
+            <!-- ### CRM PAGE (UNCHANGED) ### -->
             <section id="crm-page" class="page">
                 <div class="page-header">
                     <h2 class="page-title">Gestão de Clientes (CRM)</h2>
@@ -964,7 +996,7 @@
         </div>
     </div>
 
-    <!-- ### ADD EXPENSE MODAL (UNCHANGED) ### -->
+    <!-- ### ADD EXPENSE MODAL (MODIFIED) ### -->
     <div id="add-expense-modal" class="modal">
         <div class="modal-content">
             <button class="modal-close">&times;</button>
@@ -972,6 +1004,16 @@
             <form id="expense-form">
                 <div class="form-group"> <label for="expense-name">Nome da Despesa</label> <input type="text" id="expense-name" required> </div>
                 <div class="form-group"> <label for="expense-value">Valor (R$)</label> <input type="number" id="expense-value" step="0.01" required> </div>
+                <div class="form-group">
+                    <label for="expense-category">Categoria</label>
+                    <select id="expense-category">
+                        <option value="Fornecedores">Fornecedores</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Aluguel">Aluguel</option>
+                        <option value="Embalagens">Embalagens</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
                 <div id="fixed-expense-fields">
                      <div class="form-group"> <label for="expense-due-date">Data de Vencimento</label> <input type="date" id="expense-due-date"> </div>
                      <div class="form-group"> <label for="expense-recurrence">Recorrência</label> <select id="expense-recurrence"> <option value="Mensal">Mensal</option> <option value="Parcelado">Parcelado</option> <option value="Única">Pagamento Único</option> </select> </div>
@@ -1002,7 +1044,7 @@
         </div>
     </div>
 
-    <!-- ### CLIENT HISTORY MODAL (NEW) ### -->
+    <!-- ### CLIENT HISTORY MODAL (UNCHANGED) ### -->
     <div id="client-history-modal" class="modal">
         <div class="modal-content">
             <button class="modal-close">&times;</button>
@@ -1024,7 +1066,7 @@
         </div>
     </div>
     
-    <!-- ### MANUAL TRANSACTION MODAL (NEW) ### -->
+    <!-- ### MANUAL TRANSACTION MODAL (UNCHANGED) ### -->
     <div id="add-transaction-modal" class="modal">
         <div class="modal-content">
             <button class="modal-close">&times;</button>
@@ -1053,6 +1095,17 @@
             </form>
         </div>
     </div>
+    
+    <!-- ### NOTIFICATION MODAL (NEW) ### -->
+    <div id="notification-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <h3 class="page-title mb-4">Lembretes e Avisos</h3>
+            <ul id="notification-list">
+                <!-- Notifications will be inserted here by JS -->
+            </ul>
+        </div>
+    </div>
 
 
     <script>
@@ -1068,7 +1121,7 @@
             let areSalesActionsInitialized = false;
             let areProductActionsInitialized = false;
             let isCrmPageInitialized = false;
-            let isFinanceiroPageInitialized = false; // New flag for finance page
+            let isFinanceiroPageInitialized = false; 
 
             // --- Utility Functions ---
             const formatCurrency = (value) => `R$ ${value.toFixed(2).replace('.', ',')}`;
@@ -1097,46 +1150,27 @@
             overlay.addEventListener('click', closeMenu);
 
              // --- Global Data/State Management ---
-
-            /**
-             * Adds a new client to the CRM table.
-             * @param {object} clientData - The data for the new client.
-             */
             const addClientToCrmTable = (clientData) => {
                 const clientListBody = document.getElementById('client-list-body');
                 if (!clientListBody) return;
-
                 const newRow = document.createElement('tr');
-                
-                // Set data attributes for later use (edit, delete, etc.)
                 newRow.dataset.id = clientData.id || Date.now();
                 newRow.dataset.name = clientData.name || '';
                 newRow.dataset.phone = clientData.phone || '';
                 newRow.dataset.email = clientData.email || '';
                 newRow.dataset.address = clientData.address || '';
                 newRow.dataset.birthdate = clientData.birthdate || '';
-
                 newRow.innerHTML = `
-                    <td>${clientData.name}</td>
-                    <td>${clientData.phone}</td>
-                    <td>-</td>
-                    <td>R$ 0,00</td>
-                    <td>R$ 0,00</td>
+                    <td>${clientData.name}</td><td>${clientData.phone}</td><td>-</td><td>R$ 0,00</td><td>R$ 0,00</td>
                     <td>
                         <div class="table-actions">
-                            <button title="Histórico" class="history-client-btn">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
-                            </button>
-                            <button title="Enviar WhatsApp" class="whatsapp-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c.966 0 1.896-.156 2.748-.435l4.106 1.026-1.026-4.105A9.002 9.002 0 0 0 21 12c0-4.968-4.032-9-9-9s-9 4.032-9 9c0 2.492 1.009 4.742 2.636 6.364L3 21l4.105-1.026A8.932 8.932 0 0 0 12 20.25Z" /></svg>
-                            </button>
+                            <button title="Histórico" class="history-client-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg></button>
+                            <button title="Enviar WhatsApp" class="whatsapp-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c.966 0 1.896-.156 2.748-.435l4.106 1.026-1.026-4.105A9.002 9.002 0 0 0 21 12c0-4.968-4.032-9-9-9s-9 4.032-9 9c0 2.492 1.009 4.742 2.636 6.364L3 21l4.105-1.026A8.932 8.932 0 0 0 12 20.25Z" /></svg></button>
                             <button title="Editar" class="edit-client-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg></button>
                             <button title="Excluir" class="delete-client-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg></button>
                         </div>
-                    </td>
-                `;
-
-                clientListBody.prepend(newRow); // Add new client to the top of the list
+                    </td>`;
+                clientListBody.prepend(newRow);
             };
 
             // --- SPA Navigation Logic ---
@@ -1191,16 +1225,66 @@
                 });
             });
             
+            // --- Notification Logic ---
+            const checkDueDatesAndNotify = () => {
+                const notificationModal = document.getElementById('notification-modal');
+                const notificationList = document.getElementById('notification-list');
+                if (!notificationModal || !notificationList) return;
+                
+                notificationList.innerHTML = ''; // Clear previous notifications
+                const notifications = [];
+                
+                // --- Simulate today's date for demonstration ---
+                const today = new Date('2025-06-25T12:00:00'); // Setting time to noon to avoid timezone issues
+                today.setHours(0, 0, 0, 0);
+
+                // Check payables
+                document.querySelectorAll('#payables-table tbody tr').forEach(row => {
+                    const dueDateStr = row.dataset.dueDate;
+                    const dueDate = new Date(dueDateStr + 'T12:00:00');
+                    dueDate.setHours(0, 0, 0, 0);
+
+                    const description = row.cells[0].textContent;
+                    if (dueDate.getTime() === today.getTime()) {
+                        notifications.push(`<li><strong>Aviso:</strong> A conta "<strong>${description}</strong>" vence hoje. Você já pagou?</li>`);
+                    }
+                });
+                
+                // Check receivables
+                document.querySelectorAll('#receivables-table tbody tr').forEach(row => {
+                    const dueDateStr = row.dataset.dueDate;
+                    const dueDate = new Date(dueDateStr + 'T12:00:00');
+                    dueDate.setHours(0, 0, 0, 0);
+
+                    const clientName = row.cells[0].textContent;
+                     if (dueDate.getTime() === today.getTime()) {
+                        notifications.push(`<li><strong>Lembrete:</strong> Você precisa receber de "<strong>${clientName}</strong>" hoje. Já recebeu?</li>`);
+                    }
+                });
+
+                if (notifications.length > 0) {
+                    notificationList.innerHTML = notifications.join('');
+                    notificationModal.classList.add('active');
+                }
+
+                notificationModal.querySelector('.modal-close').addEventListener('click', () => {
+                    notificationModal.classList.remove('active');
+                });
+            };
+
+            // --- Page Initializers ---
+
             // Initial Page Load
             const currentHash = window.location.hash || '#dashboard';
             const initialPageId = currentHash.substring(1) + '-page';
             const initialLink = document.querySelector(`.nav-link[href='${currentHash}']`);
             const initialTitle = initialLink ? initialLink.querySelector('span').textContent : 'Dashboard';
             showPage(initialPageId, initialTitle);
+            
+            checkDueDatesAndNotify(); // Check for notifications on page load
 
-            // --- Vendas Page Logic (MODIFIED) ---
+            // --- Vendas Page Logic (UNCHANGED) ---
             function initializeVendasPage() {
-                // Sales History Actions (existing logic)
                 const salesHistoryBody = document.getElementById('sales-history-body');
                 if(salesHistoryBody) {
                     salesHistoryBody.addEventListener('click', (e) => {
@@ -1215,20 +1299,15 @@
                         }
                     });
                 }
-
-                // New Customer Form Logic
                 const showCustomerFormBtn = document.getElementById('show-customer-form-btn');
                 const newCustomerForm = document.getElementById('new-customer-form');
                 const saveCustomerBtn = document.getElementById('save-customer-btn');
                 const customerSearchInput = document.getElementById('customer-search');
-
                 if (showCustomerFormBtn) {
                     showCustomerFormBtn.addEventListener('click', () => {
                         newCustomerForm.classList.toggle('hidden');
                     });
                 }
-                
-                // CONNECTING VENDAS TO CRM
                 if (saveCustomerBtn) {
                     saveCustomerBtn.addEventListener('click', () => {
                         const nameInput = document.getElementById('new-customer-name');
@@ -1240,34 +1319,23 @@
                             showToast("Nome e telefone são obrigatórios.");
                             return;
                         }
-                        
-                        // Get optional data
                         const email = document.getElementById('new-customer-email').value.trim();
                         const address = document.getElementById('new-customer-address').value.trim();
-
                         const clientData = { name, phone, email, address };
-
-                        // Add client to CRM table using the global function
                         addClientToCrmTable(clientData);
-
                         showToast(`Cliente "${name}" cadastrado com sucesso!`);
-                        
-                        // Update the main search field and hide the form
                         customerSearchInput.value = name;
                         newCustomerForm.classList.add('hidden');
-                        
-                        // Clear the quick add form
                         nameInput.value = '';
                         phoneInput.value = '';
                         document.getElementById('new-customer-email').value = '';
                         document.getElementById('new-customer-address').value = '';
-
                     });
                 }
             }
 
 
-            // --- Product Page Actions ---
+            // --- Product Page Actions (UNCHANGED) ---
             const addEditProductModal = document.getElementById('add-edit-product-modal');
             const productForm = document.getElementById('new-product-form');
             
@@ -1277,10 +1345,8 @@
                 productContainer.addEventListener('click', (e) => {
                     const targetButton = e.target.closest('button');
                     if (!targetButton) return;
-
                     const card = targetButton.closest('.product-card');
                     if (!card) return;
-
                     if (targetButton.classList.contains('delete-product-btn')) {
                         card.remove();
                         showToast('Produto excluído com sucesso!');
@@ -1455,7 +1521,7 @@
             }
 
 
-            // --- Expenses Page Logic ---
+            // --- Expenses Page Logic (MODIFIED) ---
             function updateExpenseCalculations() {
                 let totalFixed = 0;
                 document.querySelectorAll('#fixed-expense-list .expense-item').forEach(item => { totalFixed += parseFloat(item.dataset.value) || 0; });
@@ -1509,18 +1575,21 @@
                     e.preventDefault();
                     const name = document.getElementById('expense-name').value;
                     const value = parseFloat(document.getElementById('expense-value').value);
+                    const category = document.getElementById('expense-category').value;
                     const type = expenseTypeHidden.value;
                     if(!name || !value) { showToast("Por favor, preencha o nome e o valor da despesa."); return; }
                     const newItem = document.createElement('li');
                     newItem.className = 'expense-item';
                     newItem.dataset.value = value.toFixed(2);
+                    newItem.dataset.category = category;
+                    
                     if (type === 'fixed') {
                         const date = document.getElementById('expense-due-date').value;
                         const recurrence = document.getElementById('expense-recurrence').value;
-                        newItem.innerHTML = `<div><span>${name}</span><div class="details">Vence em: ${date ? new Date(date + 'T00:00:00').toLocaleDateString('pt-BR') : 'N/A'} (${recurrence})</div></div><strong>${formatCurrency(value)}</strong>`;
+                        newItem.innerHTML = `<div><span>${name}</span><div class="details">Vence em: ${date ? new Date(date + 'T00:00:00').toLocaleDateString('pt-BR') : 'N/A'} (${recurrence})<span class="expense-category-tag">${category}</span></div></div><strong>${formatCurrency(value)}</strong>`;
                         document.getElementById('fixed-expense-list').appendChild(newItem);
                     } else {
-                        newItem.innerHTML = `<span>${name}</span><strong>${formatCurrency(value)}</strong>`;
+                        newItem.innerHTML = `<div><span>${name}</span><span class="expense-category-tag">${category}</span></div><strong>${formatCurrency(value)}</strong>`;
                         document.getElementById('variable-expense-list').appendChild(newItem);
                     }
                     updateExpenseCalculations();
@@ -1533,11 +1602,13 @@
                 updateExpenseCalculations();
             }
             
-            // --- Financeiro Page Logic (NEW) ---
+            // --- Financeiro Page Logic (MODIFIED) ---
             function initializeFinanceiroPage() {
                 const addTransactionBtn = document.getElementById('add-manual-transaction-btn');
                 const transactionModal = document.getElementById('add-transaction-modal');
                 const transactionModalClose = transactionModal.querySelector('.modal-close');
+                const exportReportBtn = document.getElementById('export-report-btn');
+                const financePage = document.getElementById('financeiro-page');
 
                 if(addTransactionBtn) {
                     addTransactionBtn.addEventListener('click', () => {
@@ -1551,43 +1622,71 @@
                     });
                 }
                 
-                const ctx = document.getElementById('cashFlowChart');
-                if(!ctx) return;
-                
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Março', 'Abril', 'Maio', 'Junho'],
-                        datasets: [
-                            {
-                                label: 'Entradas',
-                                data: [5200, 6100, 7500, 7850],
-                                backgroundColor: 'rgba(34, 197, 94, 0.6)', // success with opacity
-                                borderColor: 'rgba(34, 197, 94, 1)',
-                                borderWidth: 1
-                            },
-                            {
-                                label: 'Saídas',
-                                data: [1500, 1800, 1100, 1230],
-                                backgroundColor: 'rgba(239, 68, 68, 0.6)', // red-500 with opacity
-                                borderColor: 'rgba(239, 68, 68, 1)',
-                                borderWidth: 1
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        }
+                if(exportReportBtn) {
+                    exportReportBtn.addEventListener('click', () => {
+                        showToast('Funcionalidade de exportação em desenvolvimento!');
+                    });
+                }
+
+                financePage.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('action-btn')) {
+                        const button = e.target;
+                        button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" style="width:20px; height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg> OK';
+                        button.classList.remove('btn-primary');
+                        button.classList.add('btn-success');
+                        button.disabled = true;
                     }
                 });
+
+                // Bar Chart - Cash Flow
+                const cashFlowCtx = document.getElementById('cashFlowChart');
+                if(cashFlowCtx) {
+                    new Chart(cashFlowCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Março', 'Abril', 'Maio', 'Junho'],
+                            datasets: [
+                                { label: 'Entradas', data: [5200, 6100, 7500, 7850], backgroundColor: 'rgba(34, 197, 94, 0.6)', borderColor: 'rgba(34, 197, 94, 1)', borderWidth: 1 },
+                                { label: 'Saídas', data: [1500, 1800, 1100, 1230], backgroundColor: 'rgba(239, 68, 68, 0.6)', borderColor: 'rgba(239, 68, 68, 1)', borderWidth: 1 }
+                            ]
+                        },
+                        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                    });
+                }
+
+                // Pie Chart - Expenses by Category
+                const categoryCtx = document.getElementById('expensesByCategoryChart');
+                if (categoryCtx) {
+                    const expenseItems = document.querySelectorAll('#despesas-page .expense-item');
+                    const categoryTotals = {};
+                    expenseItems.forEach(item => {
+                        const category = item.dataset.category || 'Outros';
+                        const value = parseFloat(item.dataset.value) || 0;
+                        if(categoryTotals[category]) {
+                            categoryTotals[category] += value;
+                        } else {
+                            categoryTotals[category] = value;
+                        }
+                    });
+
+                    new Chart(categoryCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: Object.keys(categoryTotals),
+                            datasets: [{
+                                label: 'Despesas por Categoria',
+                                data: Object.values(categoryTotals),
+                                backgroundColor: ['#db1472', '#f8b81f', '#3b82f6', '#22c55e', '#8b5cf6'],
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: { responsive: true }
+                    });
+                }
             }
 
 
-            // --- CRM Page Logic (Updated) ---
+            // --- CRM Page Logic (UNCHANGED) ---
             function initializeCrmPage() {
                 const addClientBtn = document.getElementById('add-client-btn');
                 const clientModal = document.getElementById('add-edit-client-modal');
@@ -1617,7 +1716,6 @@
                 
                 const openHistoryModal = (clientName) => {
                     historyModalTitle.textContent = `Histórico de Compras de ${clientName}`;
-                    // Sample data - in a real app, this would be fetched
                     historyList.innerHTML = `
                         <tr><td>25/06/2025</td><td>Vestido Rosa</td><td>R$ 150,00</td></tr>
                         <tr><td>10/05/2025</td><td>Saia Midi, Calça Jeans</td><td>R$ 300,40</td></tr>
@@ -1645,8 +1743,6 @@
                             address: document.getElementById('client-address').value,
                             birthdate: document.getElementById('client-birthdate').value
                         };
-                        // Here you would normally save/update the client data
-                        // For this demo, we'll just add/update it in the table
                         addClientToCrmTable(clientData);
                         showToast("Cliente salvo com sucesso!");
                         closeClientModal();
