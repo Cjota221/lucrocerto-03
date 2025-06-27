@@ -495,6 +495,36 @@
         .mt-4 { margin-top: 1.5rem; }
         .text-center { text-align: center; }
         hr { border: none; border-top: 1px solid var(--border-color); margin: 2rem 0; }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #sale-receipt-modal, #sale-receipt-modal * {
+                visibility: visible;
+            }
+            #sale-receipt-modal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: auto;
+                background-color: white;
+                display: block !important;
+                padding: 1rem;
+            }
+            #sale-receipt-modal .modal-content {
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            #sale-receipt-modal .modal-close,
+            #sale-receipt-modal .form-actions {
+                display: none;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -924,8 +954,8 @@
                         </label>
                         <input type="file" id="avatar-upload-input" class="hidden" accept="image/*">
                         <div class="profile-info">
-                            <h2>Maria's Closet</h2>
-                            <p>maria.closet@email.com</p>
+                            <h2 id="profile-main-name">Maria's Closet</h2>
+                            <p id="profile-main-email">maria.closet@email.com</p>
                         </div>
                     </div>
     
@@ -1199,8 +1229,8 @@
     <div id="sale-receipt-modal" class="modal">
         <div class="modal-content">
             <button class="modal-close">&times;</button>
-            <h3 class="page-title mb-4">Recibo da Venda</h3>
-            <div id="receipt-content">
+            <div id="receipt-content"> <!-- Conteúdo para impressão/compartilhamento -->
+                <h3 class="page-title mb-4">Recibo da Venda</h3>
                 <p><strong>Cliente:</strong> <span id="receipt-client-name"></span></p>
                 <p><strong>Data:</strong> <span id="receipt-date"></span></p>
                 <hr style="margin: 1rem 0;">
@@ -1229,16 +1259,13 @@
             const loginForm = document.getElementById('login-form');
             const registerForm = document.getElementById('register-form');
             
-            // Botões que levam da Landing Page para a tela de Auth
             document.getElementById('goto-login-btn').addEventListener('click', () => showAuthPage(true));
             document.getElementById('goto-register-btn').addEventListener('click', () => showAuthPage(false));
             document.getElementById('start-now-btn').addEventListener('click', () => showAuthPage(false));
 
-            // Links que alternam entre Login e Cadastro
             document.getElementById('show-register').addEventListener('click', () => toggleAuthForms(false));
             document.getElementById('show-login').addEventListener('click', () => toggleAuthForms(true));
 
-            // Botões que finalizam o fluxo e entram no app
             document.getElementById('login-btn').addEventListener('click', enterMainApp);
             document.getElementById('register-btn').addEventListener('click', enterMainApp);
 
@@ -1254,16 +1281,10 @@
             }
 
             function enterMainApp() {
-                // Aqui iria a lógica real de autenticação com um backend.
-                // Para esta simulação, simplesmente trocamos a visibilidade.
                 entryWrapper.classList.add('hidden');
                 appWrapper.classList.remove('hidden');
-                
-                // Inicializa o app principal somente após o login
                 initializeApp(); 
             }
-
-            // --- ### FIM DA LÓGICA DE ENTRADA ### ---
 
             // --- ### LÓGICA DO APP PRINCIPAL (EXISTENTE) ### ---
 
@@ -1275,32 +1296,63 @@
                 const navLinks = document.querySelectorAll('.nav-link');
                 const pageTitle = document.getElementById('page-main-title');
                 
-                // --- Simulated Database ---
-                let db_products = [
-                    { id: 1, name: "Vestido Rosa", cost: 75.00, price: 150.00, stock: 5, variations: [{name:"Tamanho", values: ["P", "M"], stock: {"P": 2, "M": 3}}], image: 'https://images.unsplash.com/photo-1594613944354-bf9129598a85?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8c2VhcmNofDEzfHxwaW5rJTIwZHJlc3N8ZW58MHx8fHwxNzE5MzU4ODg4fDA&ixlib=rb-4.0.3&q=80&w=400' },
-                    { id: 2, name: "Saia Midi", cost: 40.00, price: 89.90, stock: 8, variations: [], image: 'https://images.unsplash.com/photo-1591355416298-9e120eac0219?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8c2VhcmNofDV8fG1pZGklMjBza2lydHxlbnwwfHx8fDE3MTkzNTg5MTd8MA&ixlib=rb-4.0.3&q=80&w=400' },
-                    { id: 3, name: "Calça Jeans", cost: 110.00, price: 210.50, stock: 3, variations: [], image: 'https://images.unsplash.com/photo-1602293589914-9e29544ddd5f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8c2VhcmNofDF8fGplYW5zJTIwcGFudHN8ZW58MHx8fHwxNzE5MzU4OTQwfDA&ixlib=rb-4.0.3&q=80&w=400' }
-                ];
-                let db_clients = [
-                    {id: 1, name: "Ana Paula", phone: "(62) 99999-8888", email: "ana.paula@exemplo.com", address: "Rua das Flores, 123", birthdate: "1990-07-15", lastPurchase: "25/06/2025", totalSpent: 1850.00, ticket: 462.50},
-                    {id: 2, name: "Beatriz Costa", phone: "(62) 98888-7777", email: "bia.costa@exemplo.com", address: "", birthdate: "1995-02-20", lastPurchase: "24/06/2025", totalSpent: 980.70, ticket: 163.45}
-                ];
+                // --- ### INÍCIO DA CORREÇÃO (PERSISTÊNCIA DE DADOS) ### ---
+                // --- Simulated Database with localStorage Persistence ---
+                let db_products = [];
+                let db_clients = [];
                 let db_sales = [];
-                let db_fixed_expenses = [
-                     { id: 1, name: 'Aluguel', value: 800.00, category: 'Aluguel', dueDate: '2025-07-10', recurrence: 'Mensal' },
-                     { id: 2, name: 'Internet', value: 99.90, category: 'Outros', dueDate: '2025-07-15', recurrence: 'Mensal' }
-                ];
-                let db_variable_expenses = [
-                     { id: 1, name: 'Embalagem por produto', value: 1.00, category: 'Embalagens' },
-                     { id: 2, name: 'Mimo por produto', value: 2.00, category: 'Marketing' }
-                ];
+                let db_fixed_expenses = [];
+                let db_variable_expenses = [];
+                
+                const saveData = () => {
+                    localStorage.setItem('lucroCertoData', JSON.stringify({
+                        products: db_products,
+                        clients: db_clients,
+                        sales: db_sales,
+                        fixedExpenses: db_fixed_expenses,
+                        variableExpenses: db_variable_expenses
+                    }));
+                };
+
+                const loadData = () => {
+                    const savedData = localStorage.getItem('lucroCertoData');
+                    if (savedData) {
+                        const data = JSON.parse(savedData);
+                        db_products = data.products || [];
+                        db_clients = data.clients || [];
+                        db_sales = data.sales || [];
+                        db_fixed_expenses = data.fixedExpenses || [];
+                        db_variable_expenses = data.variableExpenses || [];
+                    } else {
+                        // Load default data if nothing is saved
+                        db_products = [
+                            { id: 1, name: "Vestido Rosa", cost: 75.00, price: 150.00, stock: 5, variations: [{name:"Tamanho", values: ["P", "M"], stock: {"P": 2, "M": 3}}], image: 'https://images.unsplash.com/photo-1594613944354-bf9129598a85?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8c2VhcmNofDEzfHxwaW5rJTIwZHJlc3N8ZW58MHx8fHwxNzE5MzU4ODg4fDA&ixlib=rb-4.0.3&q=80&w=400' },
+                            { id: 2, name: "Saia Midi", cost: 40.00, price: 89.90, stock: 8, variations: [], image: 'https://images.unsplash.com/photo-1591355416298-9e120eac0219?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8c2VhcmNofDV8fG1pZGklMjBza2lydHxlbnwwfHx8fDE3MTkzNTg5MTd8MA&ixlib=rb-4.0.3&q=80&w=400' },
+                            { id: 3, name: "Calça Jeans", cost: 110.00, price: 210.50, stock: 3, variations: [], image: 'https://images.unsplash.com/photo-1602293589914-9e29544ddd5f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzOTAwNXwwfDF8c2VhcmNofDF8fGplYW5zJTIwcGFudHN8ZW58MHx8fHwxNzE5MzU4OTQwfDA&ixlib=rb-4.0.3&q=80&w=400' }
+                        ];
+                        db_clients = [
+                            {id: 1, name: "Ana Paula", phone: "(62) 99999-8888", email: "ana.paula@exemplo.com", address: "Rua das Flores, 123", birthdate: "1990-07-15", lastPurchase: "25/06/2025", totalSpent: 1850.00, ticket: 462.50},
+                            {id: 2, name: "Beatriz Costa", phone: "(62) 98888-7777", email: "bia.costa@exemplo.com", address: "", birthdate: "1995-02-20", lastPurchase: "24/06/2025", totalSpent: 980.70, ticket: 163.45}
+                        ];
+                        db_fixed_expenses = [
+                             { id: 1, name: 'Aluguel', value: 800.00, category: 'Aluguel', dueDate: '2025-07-10', recurrence: 'Mensal' },
+                             { id: 2, name: 'Internet', value: 99.90, category: 'Outros', dueDate: '2025-07-15', recurrence: 'Mensal' }
+                        ];
+                        db_variable_expenses = [
+                             { id: 1, name: 'Embalagem por produto', value: 1.00, category: 'Embalagens' },
+                             { id: 2, name: 'Mimo por produto', value: 2.00, category: 'Marketing' }
+                        ];
+                        saveData(); // Save default data on first load
+                    }
+                };
+                // --- ### FIM DA CORREÇÃO (PERSISTÊNCIA DE DADOS) ### ---
+
+
                 let productVariationsData = {};
-    
                 let currentSaleItems = [];
                 let productForVariationSelection = null;
                 let charts = {};
     
-                // Page initialization flags
                 let isDashboardInitialized = false, isVendasInitialized = false, isProdutosInitialized = false, isPrecificarInitialized = false, isDespesasInitialized = false, isFinanceiroInitialized = false, isCrmInitialized = false, isPerfilInitialized = false;
     
                 // --- Utility Functions ---
@@ -1317,7 +1369,6 @@
                 menuToggle.addEventListener('click', openMenu);
                 overlay.addEventListener('click', closeMenu);
     
-                 // --- SPA Navigation Logic ---
                 const showPage = (pageId, title) => {
                     document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
                     const targetPage = document.getElementById(pageId);
@@ -1334,15 +1385,29 @@
                     if (pageId === 'produtos-page' && !isProdutosInitialized) { initializeProdutosPage(); isProdutosInitialized = true; }
                     if (pageId === 'precificar-page' && !isPrecificarInitialized) { initializePrecificarPage(); isPrecificarInitialized = true; }
                     if (pageId === 'despesas-page') { if (!isDespesasInitialized) { initializeDespesasPage(); isDespesasInitialized = true; } else { updateDespesasCalculations(); } }
-                    if (pageId === 'crm-page' && !isCrmInitialized) { initializeCrmPage(); isCrmInitialized = true; }
+                    if (pageId === 'crm-page') { if (!isCrmInitialized) { initializeCrmPage(); isCrmInitialized = true; } else { renderClients(); } }
                     if (pageId === 'financeiro-page' && !isFinanceiroInitialized) { initializeFinanceiroPage(); isFinanceiroInitialized = true; }
                     if (pageId === 'perfil-page' && !isPerfilInitialized) { initializePerfilPage(); isPerfilInitialized = true; }
                 };
     
                 navLinks.forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); const pageId = link.getAttribute('href').substring(1) + '-page'; const title = link.querySelector('span').textContent; showPage(pageId, title); window.location.hash = link.getAttribute('href'); }); });
                 
-                // --- Page Initializers (Full, Corrected Implementations) ---
-    
+                function calculateTotalUnitCost() {
+                    let totalFixed = 0; db_fixed_expenses.forEach(item => { totalFixed += item.value; });
+                    let totalVariable = 0; db_variable_expenses.forEach(item => { totalVariable += item.value; });
+                    
+                    const monthlyShippingInput = document.getElementById('monthly-shipping-cost');
+                    const itemsSoldInput = document.getElementById('items-sold-monthly');
+                    
+                    const monthlyShipping = monthlyShippingInput ? parseCurrency(monthlyShippingInput.value) : 0;
+                    const itemsSold = itemsSoldInput ? parseInt(itemsSoldInput.value) || 1 : 1; 
+                    
+                    const unitFixedCost = itemsSold > 0 ? (totalFixed + monthlyShipping) / itemsSold : (totalFixed + monthlyShipping);
+                    const totalUnitCost = unitFixedCost + totalVariable;
+                    
+                    return totalUnitCost;
+                }
+                
                 function initializeDashboardCharts() {
                     destroyChart('goalChart'); const goalCtx = document.getElementById('goalChart').getContext('2d'); charts['goalChart'] = new Chart(goalCtx, { type: 'doughnut', data: { labels: ['Alcançado', 'Faltam'], datasets: [{ data: [7850, 2150], backgroundColor: ['#db1472', '#e5e7eb'], borderWidth: 2 }] }, options: { responsive: true, cutout: '70%', plugins: { legend: { display: false } } } });
                     destroyChart('topProductsChart'); const topProductsCtx = document.getElementById('topProductsChart').getContext('2d'); charts['topProductsChart'] = new Chart(topProductsCtx, { type: 'bar', data: { labels: ['Vestido Rosa', 'Saia Midi', 'Calça Jeans', 'Blusa Floral'], datasets: [{ label: 'Unidades Vendidas', data: [45, 32, 28, 15], backgroundColor: '#f8b81f', borderRadius: 4 }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
@@ -1370,13 +1435,10 @@
                     const selectedList = document.getElementById('selected-products-list');
                     const noProductsMsg = document.getElementById('no-products-message');
                     
-                    const productItems = selectedList.querySelectorAll('.selected-product-item');
-                    productItems.forEach(item => item.remove());
-    
+                    selectedList.innerHTML = '';
                     if (currentSaleItems.length === 0) {
-                        if (noProductsMsg) noProductsMsg.style.display = 'block';
+                        selectedList.innerHTML = `<p id="no-products-message" class="text-light">Nenhum produto adicionado.</p>`;
                     } else {
-                        if (noProductsMsg) noProductsMsg.style.display = 'none';
                         currentSaleItems.forEach((item, index) => {
                             const itemEl = document.createElement('div');
                             itemEl.className = 'selected-product-item';
@@ -1418,17 +1480,48 @@
                                 <td><span class="${sale.status === 'Pago' ? 'status-paid' : 'status-pending'}">${sale.status}</span></td>
                                 <td>
                                     <div class="table-actions">
-                                        <button title="Editar" class="edit-sale-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="pointer-events:none;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg></button>
                                         <button title="Excluir" class="delete-sale-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="pointer-events:none;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg></button>
                                     </div>
                                 </td>`;
                             tbody.appendChild(row);
                         });
+                        saveData();
                     }
     
                     document.getElementById('show-customer-form-btn').addEventListener('click', () => { document.getElementById('new-customer-form').classList.toggle('hidden'); });
                     document.getElementById('advanced-customer-toggle').addEventListener('click', () => { document.getElementById('advanced-customer-fields').classList.toggle('hidden'); });
-                    document.getElementById('save-customer-btn').addEventListener('click', () => { showToast("Cliente salvo com sucesso!"); document.getElementById('new-customer-form').classList.add('hidden'); });
+                    
+                    // ### INÍCIO DA CORREÇÃO (Salvar cliente no PDV) ###
+                    document.getElementById('save-customer-btn').addEventListener('click', () => {
+                        const newName = document.getElementById('new-customer-name').value.trim();
+                        const newPhone = document.getElementById('new-customer-phone').value.trim();
+                        if (!newName || !newPhone) {
+                            showToast("Nome e telefone são obrigatórios.");
+                            return;
+                        }
+
+                        const newClient = {
+                            id: Date.now(),
+                            name: newName,
+                            phone: newPhone,
+                            email: document.getElementById('new-customer-email').value.trim(),
+                            address: document.getElementById('new-customer-address').value.trim(),
+                            birthdate: '',
+                            lastPurchase: '',
+                            totalSpent: 0,
+                            ticket: 0
+                        };
+                        db_clients.push(newClient);
+                        saveData();
+                        renderClients(); // Atualiza a lista na página de CRM
+                        
+                        document.getElementById('customer-search').value = newName;
+                        showToast("Cliente salvo com sucesso!");
+                        document.getElementById('new-customer-form').classList.add('hidden');
+                        document.getElementById('new-customer-form').querySelector('form')?.reset();
+                    });
+                     // ### FIM DA CORREÇÃO ###
+
                     document.getElementById('payment-method').addEventListener('change', (e) => {
                         document.getElementById('installments-group').classList.toggle('hidden', e.target.value !== 'credito');
                     });
@@ -1506,7 +1599,11 @@
                         db_sales.push(newSale);
                         renderSalesHistory();
                         
-                        // Populate and show receipt
+                        const clientName = newSale.client;
+                        const client = db_clients.find(c => c.name.toLowerCase() === clientName.toLowerCase());
+                        const whatsappBtn = document.getElementById('whatsapp-receipt-btn');
+                        whatsappBtn.dataset.clientPhone = client ? client.phone : '';
+
                         document.getElementById('receipt-client-name').textContent = newSale.client;
                         document.getElementById('receipt-date').textContent = newSale.date;
                         document.getElementById('receipt-subtotal').textContent = document.getElementById('summary-subtotal').textContent;
@@ -1528,16 +1625,41 @@
                         const target = e.target.closest('button');
                         if (!target) return;
                         const row = target.closest('tr');
+                        const saleId = parseInt(row.dataset.saleId);
                         if (target.classList.contains('delete-sale-btn')) {
-                            row.remove();
+                            db_sales = db_sales.filter(s => s.id !== saleId);
+                            renderSalesHistory();
                             showToast('Venda removida do histórico.');
-                        } else if (target.classList.contains('edit-sale-btn')) {
-                            showToast('Função de editar venda não implementada.');
                         }
                     });
     
-                    ['print-receipt-btn', 'whatsapp-receipt-btn'].forEach(id => {
-                        document.getElementById(id).addEventListener('click', () => showToast('Ação simulada com sucesso!'));
+                    document.getElementById('print-receipt-btn').addEventListener('click', () => {
+                        window.print();
+                    });
+
+                    document.getElementById('whatsapp-receipt-btn').addEventListener('click', (e) => {
+                        const phone = e.target.dataset.clientPhone;
+                        if (!phone) {
+                            showToast("Telefone do cliente não encontrado para envio.");
+                            return;
+                        }
+
+                        const cleanPhone = "55" + phone.replace(/\D/g, '');
+
+                        const clientName = document.getElementById('receipt-client-name').textContent;
+                        const saleDate = document.getElementById('receipt-date').textContent;
+                        const totalValue = document.getElementById('receipt-total').textContent;
+                        let itemsText = "";
+                        document.querySelectorAll('#receipt-product-list li').forEach(li => {
+                            itemsText += `\n- ${li.textContent.replace(/\s-\sR\$.*$/, '').trim()}`;
+                        });
+
+                        const message = `Olá, ${clientName}!\n\nObrigada por comprar na Maria's Closet em ${saleDate}.\n\n*Resumo do seu pedido:*${itemsText}\n\n*Total:* ${totalValue}`;
+
+                        const encodedMessage = encodeURIComponent(message);
+                        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+                        
+                        window.open(whatsappUrl, '_blank');
                     });
                     
                     renderSalesHistory();
@@ -1575,7 +1697,9 @@
     
                 function updateProductModalPrice() {
                     const cost = parseCurrency(document.getElementById('product-acquisition-cost').value);
-                    const unitCost = parseCurrency(document.getElementById('auto-unit-cost').value);
+                    const unitCost = calculateTotalUnitCost();
+                    document.getElementById('auto-unit-cost').value = formatCurrency(unitCost);
+                    
                     const profitMargin = parseInt(document.getElementById('profit-margin-slider').value);
                     
                     let otherCostsPercentage = 0;
@@ -1585,8 +1709,11 @@
                     });
                     
                     const totalCost = cost + unitCost;
-                    let finalPrice = totalCost / (1 - (profitMargin / 100) - (otherCostsPercentage / 100));
+                    const divisor = 1 - (profitMargin / 100) - (otherCostsPercentage / 100);
+                    
+                    let finalPrice = (divisor > 0) ? totalCost / divisor : totalCost;
                     if (isNaN(finalPrice) || !isFinite(finalPrice)) finalPrice = 0;
+
                     const profitValue = finalPrice - totalCost;
     
                     document.getElementById('suggested-price').textContent = formatCurrency(finalPrice);
@@ -1605,7 +1732,7 @@
                         document.getElementById('product-modal-title').textContent = 'Adicionar Novo Produto';
                         document.getElementById('image-preview').classList.add('hidden');
                         document.getElementById('image-preview-text').classList.remove('hidden');
-                        document.getElementById('auto-unit-cost').value = document.getElementById('total-unit-cost-display-top').textContent;
+                        document.getElementById('auto-unit-cost').value = formatCurrency(calculateTotalUnitCost());
                         updateProductModalPrice();
                         openModal(productModal);
                     });
@@ -1614,11 +1741,15 @@
                     document.getElementById('product-image-input').addEventListener('change', (e) => {
                         const file = e.target.files[0];
                         if(file) {
-                            const preview = document.getElementById('image-preview');
-                            const previewText = document.getElementById('image-preview-text');
-                            preview.src = URL.createObjectURL(file);
-                            preview.classList.remove('hidden');
-                            previewText.classList.add('hidden');
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const preview = document.getElementById('image-preview');
+                                const previewText = document.getElementById('image-preview-text');
+                                preview.src = e.target.result;
+                                preview.classList.remove('hidden');
+                                previewText.classList.add('hidden');
+                            }
+                            reader.readAsDataURL(file);
                         }
                     });
     
@@ -1654,16 +1785,21 @@
                             image: document.getElementById('image-preview').src
                         };
                         
+                        // ### INÍCIO DA CORREÇÃO (Edição de Produto) ###
                         if (productId) {
                             const index = db_products.findIndex(p => p.id == productId);
-                            db_products[index] = { ...db_products[index], ...productData };
-                            showToast("Produto atualizado com sucesso!");
+                            if(index !== -1) {
+                                db_products[index] = { ...db_products[index], ...productData };
+                                showToast("Produto atualizado com sucesso!");
+                            }
                         } else {
-                            productData.id = db_products.length > 0 ? Math.max(...db_products.map(p => p.id)) + 1 : 1;
+                            productData.id = Date.now();
                             db_products.push(productData);
                             showToast("Produto salvo com sucesso!");
                         }
+                        // ### FIM DA CORREÇÃO ###
                         
+                        saveData();
                         renderProducts();
                         closeModal(productModal);
                     });
@@ -1686,17 +1822,19 @@
                             document.getElementById('image-preview').classList.remove('hidden');
                             document.getElementById('image-preview-text').classList.add('hidden');
                             document.getElementById('single-product-stock').value = product.stock;
-                            document.getElementById('auto-unit-cost').value = document.getElementById('total-unit-cost-display-top').textContent;
+                            document.getElementById('auto-unit-cost').value = formatCurrency(calculateTotalUnitCost());
                             
                             updateProductModalPrice();
-                            const totalCost = product.cost + parseCurrency(document.getElementById('auto-unit-cost').value);
-                            const sliderValue = totalCost > 0 ? ((product.price / totalCost) - 1) * 100 : 0;
-                            document.getElementById('profit-margin-slider').value = sliderValue > 0 ? sliderValue : 100;
+                            const totalCost = product.cost + calculateTotalUnitCost();
+                            const profitMarginCalc = totalCost > 0 ? ((product.price - totalCost) / totalCost) * 100 : 100;
+                            document.getElementById('profit-margin-slider').value = profitMarginCalc > 0 ? profitMarginCalc : 100;
+                            updateProductModalPrice();
     
                             openModal(productModal);
     
                         } else if (target.closest('.delete-product-btn')) {
                              db_products = db_products.filter(p => p.id !== productId);
+                             saveData();
                              renderProducts();
                              showToast('Produto excluído com sucesso.');
                         }
@@ -1749,10 +1887,11 @@
                      const inverseProductCostInput = document.getElementById('inverse-product-cost');
                      const inverseSellingPriceInput = document.getElementById('inverse-selling-price');
                      
-                     const updateAll = () => {
-                        const unitCost = parseCurrency(document.getElementById('total-unit-cost-display-top').textContent);
+                     function updateAllPrecificarCalculators() {
+                        const unitCost = calculateTotalUnitCost();
                         document.getElementById('precificar-base-cost').textContent = formatCurrency(unitCost);
                         
+                        // Calculadora Inteligente
                         const smartCost = parseFloat(smartProductCostInput.value) || 0;
                         const smartTotal = smartCost + unitCost;
                         const smartMargin = parseInt(smartProfitSlider.value);
@@ -1761,6 +1900,7 @@
                         document.getElementById('smart-profit-percentage').textContent = `${smartMargin}%`;
                         document.getElementById('smart-profit-value').textContent = formatCurrency(smartPrice - smartTotal);
     
+                        // Calculadora Inversa
                         const inverseCost = parseFloat(inverseProductCostInput.value) || 0;
                         const inversePrice = parseFloat(inverseSellingPriceInput.value) || 0;
                         const inverseTotal = inverseCost + unitCost;
@@ -1771,21 +1911,20 @@
                         document.getElementById('inverse-profit-margin').textContent = `${inverseMargin.toFixed(0)}%`;
                      };
                      
-                     [smartProductCostInput, smartProfitSlider, inverseProductCostInput, inverseSellingPriceInput].forEach(el => { if(el) el.addEventListener('input', updateAll); });
-                     updateAll();
+                     [smartProductCostInput, smartProfitSlider, inverseProductCostInput, inverseSellingPriceInput].forEach(el => { if(el) el.addEventListener('input', updateAllPrecificarCalculators); });
+                     updateAllPrecificarCalculators(); // Run on initialization
                 }
     
                 function updateDespesasCalculations() {
+                    const totalUnitCost = calculateTotalUnitCost();
+
                     let totalFixed = 0; db_fixed_expenses.forEach(item => { totalFixed += item.value; });
                     document.getElementById('total-fixed-cost-display').textContent = formatCurrency(totalFixed);
+                    
                     let totalVariable = 0; db_variable_expenses.forEach(item => { totalVariable += item.value; });
                     document.getElementById('total-variable-cost-display').textContent = formatCurrency(totalVariable);
-                    const monthlyShipping = parseCurrency(document.getElementById('monthly-shipping-cost')?.value);
-                    const itemsSold = parseInt(document.getElementById('items-sold-monthly')?.value) || 1; 
-                    const unitFixedCost = itemsSold > 0 ? (totalFixed + monthlyShipping) / itemsSold : (totalFixed + monthlyShipping);
-                    const totalUnitCost = unitFixedCost + totalVariable;
+                    
                     document.getElementById('total-unit-cost-display-top').textContent = formatCurrency(totalUnitCost);
-                    if (isPrecificarInitialized) { initializePrecificarPage(); }
                 }
     
                 function initializeDespesasPage() {
@@ -1863,6 +2002,7 @@
                             else db_variable_expenses.push(data);
                         }
                         
+                        saveData();
                         renderExpenses();
                         closeModal(expenseModal);
                         showToast("Despesa salva!");
@@ -1881,6 +2021,7 @@
                             } else if (button.classList.contains('delete-expense-btn')) {
                                  if(type === 'fixed') db_fixed_expenses = db_fixed_expenses.filter(item => item.id != id);
                                  else db_variable_expenses = db_variable_expenses.filter(item => item.id != id);
+                                 saveData();
                                  renderExpenses();
                                  showToast("Despesa excluída.");
                             }
@@ -1923,7 +2064,7 @@
                              <td>
                                  <div class="table-actions">
                                     <button title="Histórico" class="history-client-btn"><svg style="pointer-events:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg> </button>
-                                    <button title="Enviar WhatsApp" class="whatsapp-client-btn"><svg style="pointer-events:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c.966 0 1.896-.156 2.748-.435l4.106 1.026-1.026-4.105A9.002 9.002 0 0 0 21 12c0-4.968-4.032-9-9-9s-9 4.032-9 9c0 2.492 1.009 4.742 2.636 6.364L3 21l4.105-1.026A8.932 8.932 0 0 0 12 20.25Z" /></svg> </button>
+                                    <button title="Enviar WhatsApp" class="whatsapp-client-btn whatsapp-icon"><svg style="pointer-events:none;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .026 3.603.026 8.05c0 1.463.39 2.828 1.099 4.026l-1.1 4.099 4.192-1.098a7.92 7.92 0 0 0 3.79-.965h.004c4.368 0 7.97-3.602 7.97-8.047 0-2.22-.892-4.24-2.48-5.736Z"/></svg></button>
                                     <button title="Editar" class="edit-client-btn"><svg style="pointer-events:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg></button>
                                     <button title="Excluir" class="delete-client-btn"><svg style="pointer-events:none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg></button>
                                  </div>
@@ -1966,6 +2107,7 @@
                             db_clients.push(clientData);
                             showToast("Cliente salvo com sucesso!");
                         }
+                        saveData();
                         renderClients();
                         closeModal(clientModal);
                      });
@@ -1988,6 +2130,7 @@
                              openModal(clientModal);
                          } else if (button.classList.contains('delete-client-btn')) {
                              db_clients = db_clients.filter(c => c.id != id);
+                             saveData();
                              renderClients();
                              showToast("Cliente excluído com sucesso.");
                          } else if (button.classList.contains('history-client-btn')) {
@@ -2034,6 +2177,10 @@
     
                     document.getElementById('profile-data-form').addEventListener('submit', e => {
                         e.preventDefault();
+                         const companyName = document.getElementById('company-name').value;
+                         const userEmail = document.getElementById('user-email').value;
+                         document.getElementById('profile-main-name').textContent = companyName;
+                         document.getElementById('profile-main-email').textContent = userEmail;
                         showToast('Dados salvos com sucesso!');
                     });
     
@@ -2047,6 +2194,7 @@
                 document.querySelectorAll('.modal .modal-close').forEach(btn => { btn.addEventListener('click', (e) => { e.target.closest('.modal').classList.remove('active'); }); });
     
                 // --- Initial Page Load (for main app) ---
+                loadData();
                 const currentHash = window.location.hash || '#dashboard';
                 const initialPageId = currentHash.substring(1) + '-page';
                 const initialLink = document.querySelector(`.nav-link[href='${currentHash}']`);
